@@ -11,3 +11,6 @@ vite.config.ts.timestamp-*
 
 # Asset references folder (design files, not needed in repo)
 asset references/
+
+# Setup documentation (internal use only)
+SETUP_COMPLETE.md
