@@ -26,36 +26,38 @@ export const nodes = [
 	() => import('./nodes/22'),
 	() => import('./nodes/23'),
 	() => import('./nodes/24'),
-	() => import('./nodes/25')
+	() => import('./nodes/25'),
+	() => import('./nodes/26'),
+	() => import('./nodes/27')
 ];
 
-export const server_loads = [];
+export const server_loads = [2,3];
 
 export const dictionary = {
-		"/": [2],
-		"/about": [3],
-		"/admin/admins": [4],
-		"/admin/dashboard": [5],
-		"/admin/home": [6],
-		"/admin/programs": [7],
-		"/admin/settings": [8],
-		"/admin/submissions": [9],
-		"/admin/works": [10],
-		"/app/drafted": [11],
-		"/app/home": [12],
-		"/app/liked": [13],
-		"/app/profile": [14],
-		"/app/submitted": [16],
-		"/app/submit": [15],
-		"/auth/forgot": [17],
-		"/auth/otp": [18],
-		"/auth/reset": [19],
-		"/auth/sign-in": [20],
-		"/auth/sign-up": [21],
-		"/programs": [22],
-		"/support": [23],
-		"/works": [24],
-		"/works/[slug]": [25]
+		"/": [4],
+		"/about": [5],
+		"/admin/admins": [6,[2]],
+		"/admin/dashboard": [7,[2]],
+		"/admin/home": [8,[2]],
+		"/admin/programs": [9,[2]],
+		"/admin/settings": [10,[2]],
+		"/admin/submissions": [11,[2]],
+		"/admin/works": [12,[2]],
+		"/app/drafted": [13,[3]],
+		"/app/home": [14,[3]],
+		"/app/liked": [15,[3]],
+		"/app/profile": [16,[3]],
+		"/app/submitted": [18,[3]],
+		"/app/submit": [17,[3]],
+		"/auth/forgot": [19],
+		"/auth/otp": [20],
+		"/auth/reset": [21],
+		"/auth/sign-in": [22],
+		"/auth/sign-up": [23],
+		"/programs": [24],
+		"/support": [25],
+		"/works": [26],
+		"/works/[slug]": [27]
 	};
 
 export const hooks = {

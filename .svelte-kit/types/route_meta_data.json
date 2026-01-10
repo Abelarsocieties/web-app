@@ -1,19 +1,51 @@
 {
 	"/": [],
 	"/about": [],
-	"/admin/admins": [],
-	"/admin/dashboard": [],
-	"/admin/home": [],
-	"/admin/programs": [],
-	"/admin/settings": [],
-	"/admin/submissions": [],
-	"/admin/works": [],
-	"/app/drafted": [],
-	"/app/home": [],
-	"/app/liked": [],
-	"/app/profile": [],
-	"/app/submitted": [],
-	"/app/submit": [],
+	"/admin": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/admins": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/dashboard": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/home": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/programs": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/settings": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/submissions": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/admin/works": [
+		"src/routes/admin/+layout.server.ts"
+	],
+	"/app": [
+		"src/routes/app/+layout.server.ts"
+	],
+	"/app/drafted": [
+		"src/routes/app/+layout.server.ts"
+	],
+	"/app/home": [
+		"src/routes/app/+layout.server.ts"
+	],
+	"/app/liked": [
+		"src/routes/app/+layout.server.ts"
+	],
+	"/app/profile": [
+		"src/routes/app/+layout.server.ts"
+	],
+	"/app/submitted": [
+		"src/routes/app/+layout.server.ts"
+	],
+	"/app/submit": [
+		"src/routes/app/+layout.server.ts"
+	],
 	"/auth/forgot": [],
 	"/auth/otp": [],
 	"/auth/reset": [],
