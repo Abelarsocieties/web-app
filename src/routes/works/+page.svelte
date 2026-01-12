@@ -4,10 +4,10 @@
 	import CTASection from '$lib/components/CTASection.svelte';
 </script>
 
-<PublicHeader />
+<!-- <PublicHeader /> -->
 
 <!-- Works Page -->
-<section class="py-16 bg-white" style="background-image: radial-gradient(circle, #f0f0f0 1px, transparent 1px); background-size: 20px 20px;">
+<section class="py-16 bg-white" style="background-image: radial-gradient(circle, #f0f0f0 1.5px, transparent 1px); background-size: 20px 20px;">
 	<div class="container mx-auto px-4">
 		<!-- Page Title -->
 		<h1 class="text-4xl font-bold text-gray-800 mb-8" style="font-weight: 900;">Works</h1>
@@ -57,8 +57,17 @@
 			</div>
 		</div>
 		
-		<!-- Works Grid -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+		<!-- Works Grid or Empty State -->
+		{#if false}
+			<!-- Empty State (shown when no works match filter) -->
+			<!-- Set condition to true when implementing filter logic and no results found -->
+			<div class="flex flex-col items-center justify-center py-20 mb-12 animate-fade-in">
+				<img src="/open-book.png" alt="No works found" class="w-32 h-32 mb-6 opacity-50" />
+				<h3 class="text-2xl font-bold text-gray-800 mb-2" style="font-weight: 900;">No works found</h3>
+				<p class="text-gray-600">Try adjusting your filters or search terms.</p>
+			</div>
+		{:else}
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
 			<!-- Work Card 1 -->
 			<a href="/works/article-1" class="bg-white border border-black overflow-hidden hover:shadow-lg transition-shadow block" style="padding: 10px;">
 				<div class="h-48 bg-gray-200"></div>
@@ -292,7 +301,8 @@
 					</div>
 				</div>
 			</a>
-		</div>
+			</div>
+		{/if}
 		
 		<!-- Pagination -->
 		<div class="flex justify-between items-center mb-12">

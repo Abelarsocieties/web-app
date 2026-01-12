@@ -27,7 +27,7 @@ export {};
 
 declare module "$app/types" {
 	export interface AppTypes {
-		RouteId(): "/" | "/about" | "/admin" | "/admin/admins" | "/admin/dashboard" | "/admin/home" | "/admin/programs" | "/admin/settings" | "/admin/submissions" | "/admin/works" | "/app" | "/app/drafted" | "/app/home" | "/app/liked" | "/app/profile" | "/app/submitted" | "/app/submit" | "/auth" | "/auth/forgot" | "/auth/otp" | "/auth/reset" | "/auth/sign-in" | "/auth/sign-up" | "/programs" | "/support" | "/works" | "/works/[slug]";
+		RouteId(): "/" | "/about" | "/admin" | "/admin/admins" | "/admin/dashboard" | "/admin/home" | "/admin/programs" | "/admin/settings" | "/admin/submissions" | "/admin/works" | "/app" | "/app/drafted" | "/app/home" | "/app/liked" | "/app/profile" | "/app/submitted" | "/app/submit" | "/auth" | "/auth/forgot" | "/auth/otp" | "/auth/reset" | "/auth/sign-in" | "/auth/sign-up" | "/opportunities" | "/programs" | "/support" | "/works" | "/works/[slug]";
 		RouteParams(): {
 			"/works/[slug]": { slug: string }
 		};
@@ -55,12 +55,13 @@ declare module "$app/types" {
 			"/auth/reset": Record<string, never>;
 			"/auth/sign-in": Record<string, never>;
 			"/auth/sign-up": Record<string, never>;
+			"/opportunities": Record<string, never>;
 			"/programs": Record<string, never>;
 			"/support": Record<string, never>;
 			"/works": { slug?: string };
 			"/works/[slug]": { slug: string }
 		};
-		Pathname(): "/" | "/about" | "/about/" | "/admin" | "/admin/" | "/admin/admins" | "/admin/admins/" | "/admin/dashboard" | "/admin/dashboard/" | "/admin/home" | "/admin/home/" | "/admin/programs" | "/admin/programs/" | "/admin/settings" | "/admin/settings/" | "/admin/submissions" | "/admin/submissions/" | "/admin/works" | "/admin/works/" | "/app" | "/app/" | "/app/drafted" | "/app/drafted/" | "/app/home" | "/app/home/" | "/app/liked" | "/app/liked/" | "/app/profile" | "/app/profile/" | "/app/submitted" | "/app/submitted/" | "/app/submit" | "/app/submit/" | "/auth" | "/auth/" | "/auth/forgot" | "/auth/forgot/" | "/auth/otp" | "/auth/otp/" | "/auth/reset" | "/auth/reset/" | "/auth/sign-in" | "/auth/sign-in/" | "/auth/sign-up" | "/auth/sign-up/" | "/programs" | "/programs/" | "/support" | "/support/" | "/works" | "/works/" | `/works/${string}` & {} | `/works/${string}/` & {};
+		Pathname(): "/" | "/about" | "/about/" | "/admin" | "/admin/" | "/admin/admins" | "/admin/admins/" | "/admin/dashboard" | "/admin/dashboard/" | "/admin/home" | "/admin/home/" | "/admin/programs" | "/admin/programs/" | "/admin/settings" | "/admin/settings/" | "/admin/submissions" | "/admin/submissions/" | "/admin/works" | "/admin/works/" | "/app" | "/app/" | "/app/drafted" | "/app/drafted/" | "/app/home" | "/app/home/" | "/app/liked" | "/app/liked/" | "/app/profile" | "/app/profile/" | "/app/submitted" | "/app/submitted/" | "/app/submit" | "/app/submit/" | "/auth" | "/auth/" | "/auth/forgot" | "/auth/forgot/" | "/auth/otp" | "/auth/otp/" | "/auth/reset" | "/auth/reset/" | "/auth/sign-in" | "/auth/sign-in/" | "/auth/sign-up" | "/auth/sign-up/" | "/opportunities" | "/opportunities/" | "/programs" | "/programs/" | "/support" | "/support/" | "/works" | "/works/" | `/works/${string}` & {} | `/works/${string}/` & {};
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): "/footer-icon.png" | "/hero-bg.jpg" | "/icon-background.png" | "/left-vector.png" | "/main-icon.png" | "/right-vector.png" | "/user-icon.png" | "/vector-5.png" | "/vector-6.png" | string & {};
 	}

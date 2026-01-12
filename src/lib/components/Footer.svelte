@@ -15,21 +15,45 @@
 		<!-- Navigation Links -->
 		<nav class="mb-8">
 			<ul class="flex flex-wrap items-center gap-0 text-white">
-				<li><a href="/" class="px-3 py-2 hover:text-primary transition-colors">Home</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/works" class="px-3 py-2 hover:text-primary transition-colors">Articles</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/proposals" class="px-3 py-2 hover:text-primary transition-colors">Proposals</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/research-papers" class="px-3 py-2 hover:text-primary transition-colors">Research Papers</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/programs" class="px-3 py-2 hover:text-primary transition-colors">Programs</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/opportunities" class="px-3 py-2 hover:text-primary transition-colors">Opportunities</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/support" class="px-3 py-2 hover:text-primary transition-colors">Contact Us</a></li>
-				<li class="h-4 w-px bg-primary" style="transform: skewX(15deg);"></li>
-				<li><a href="/writing-guide" class="px-3 py-2 hover:text-primary transition-colors">Writing Guide</a></li>
+				<li><a href="/" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Home</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/works" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Articles</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/proposals" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Proposals</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/research-papers" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Research Papers</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/programs" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Programs</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/opportunities" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Opportunities</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/support" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Contact Us</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
+				<li class="h-4 w-px bg-primary transition-opacity duration-300" style="transform: skewX(15deg);"></li>
+				<li><a href="/writing-guide" class="px-3 py-2 hover:text-primary transition-all duration-300 relative group">
+					<span class="relative z-10">Writing Guide</span>
+					<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+				</a></li>
 			</ul>
 		</nav>
 
@@ -42,8 +66,8 @@
 			
 			<!-- Terms & Privacy -->
 			<div class="flex gap-4 text-white text-sm">
-				<a href="/terms" class="hover:text-primary transition-colors">Terms</a>
-				<a href="/privacy" class="hover:text-primary transition-colors">Privacy</a>
+				<a href="/terms" class="hover:text-primary transition-all duration-300">Terms</a>
+				<a href="/privacy" class="hover:text-primary transition-all duration-300">Privacy</a>
 			</div>
 		</div>
 	</div>
