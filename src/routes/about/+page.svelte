@@ -360,4 +360,3 @@
 </section>
 
 <CTASection />
-<Footer />

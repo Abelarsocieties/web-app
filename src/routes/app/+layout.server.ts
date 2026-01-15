@@ -6,8 +6,14 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		throw redirect(303, '/auth/sign-in');
 	}
 
+	// Ensure user object includes email
+	const user = locals.user ? {
+		...locals.user,
+		email: locals.user.email || locals.session.user.email || null
+	} : null;
+
 	return {
 		session: locals.session,
-		user: locals.user
+		user
 	};
 };

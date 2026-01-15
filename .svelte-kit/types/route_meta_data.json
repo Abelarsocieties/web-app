@@ -1,59 +1,122 @@
 {
-	"/": [],
-	"/about": [],
+	"/": [
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/about": [
+		"src/routes/+layout.server.ts"
+	],
 	"/admin": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/admins": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/dashboard": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/forgot": [
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/home": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/login": [
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/programs": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/admin/reset": [
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/settings": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/submissions": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/admin/works": [
-		"src/routes/admin/+layout.server.ts"
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app/drafted": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app/home": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app/liked": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app/profile": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app/submitted": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
 	"/app/submit": [
-		"src/routes/app/+layout.server.ts"
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
 	],
-	"/auth/forgot": [],
-	"/auth/otp": [],
-	"/auth/reset": [],
-	"/auth/sign-in": [],
-	"/auth/sign-up": [],
-	"/opportunities": [],
-	"/programs": [],
-	"/support": [],
-	"/works": [],
-	"/works/[slug]": []
+	"/auth": [
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/callback": [
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/forgot": [
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/otp": [
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/reset": [
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/sign-in": [
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/sign-up": [
+		"src/routes/+layout.server.ts"
+	],
+	"/opportunities": [
+		"src/routes/+layout.server.ts"
+	],
+	"/programs": [
+		"src/routes/+layout.server.ts"
+	],
+	"/support": [
+		"src/routes/+layout.server.ts"
+	],
+	"/works": [
+		"src/routes/+layout.server.ts"
+	],
+	"/works/[slug]": [
+		"src/routes/+layout.server.ts"
+	],
+	"/writing-guide": [
+		"src/routes/+layout.server.ts"
+	]
 }

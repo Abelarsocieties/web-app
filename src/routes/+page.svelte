@@ -1,5 +1,44 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import { createClient } from '$lib/supabase/client';
 	import CTASection from '$lib/components/CTASection.svelte';
+
+	// Handle Supabase auth code from URL (email verification, magic links, etc.)
+	onMount(async () => {
+		if (browser) {
+			const urlParams = new URLSearchParams(window.location.search);
+			const code = urlParams.get('code');
+			const type = urlParams.get('type');
+			
+			if (code) {
+				// Exchange code for session
+				const supabase = createClient();
+				const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+				
+				if (error) {
+					console.error('Code exchange error:', error);
+					// Remove code from URL even on error
+					window.history.replaceState({}, '', window.location.pathname);
+				} else 				if (data.session) {
+					// Successfully authenticated, clean URL and redirect
+					window.history.replaceState({}, '', window.location.pathname);
+					
+					// Redirect based on type or default to user dashboard
+					if (type === 'recovery') {
+						goto('/auth/reset');
+					} else {
+						goto('/app/home');
+					}
+				} else {
+					// No session but no error - just clean URL
+					window.history.replaceState({}, '', window.location.pathname);
+				}
+			}
+		}
+	});
 </script>
 
 <!-- Hero Section -->

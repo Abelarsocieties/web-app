@@ -172,7 +172,31 @@ CREATE TABLE submissions (
 ### Server-side only
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (never exposed to client)
 
-## RLS Policies
+## Security Architecture
+
+### Row Level Security (RLS)
+- **Status**: RLS is ENABLED on all tables
+- **Policies**: NO policies are created (blocks all direct client access)
+- **Access**: Only service role key can access database directly
+- **Writes**: All writes go through Edge Functions with authentication
+
+### Edge Functions
+All write operations must go through Supabase Edge Functions:
+- Edge Functions authenticate users before processing
+- Edge Functions use service role key to bypass RLS
+- Edge Functions validate and sanitize all inputs
+- Frontend cannot write directly to database
+
+### Available Edge Functions
+- `contact-message` - Handle contact form submissions
+- `create-work` - Create new work submissions (requires auth)
+- More functions to be added as needed
+
+See `SECURITY_SETUP.md` for detailed security documentation.
+
+## RLS Policies (Legacy - Not Used)
+
+⚠️ **Note**: The following policies are NOT active. RLS is enabled with NO policies, meaning all direct client access is blocked. All writes must go through Edge Functions.
 
 ### profiles
 - **SELECT**: Users can read their own profile and public profiles

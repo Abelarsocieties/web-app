@@ -13,6 +13,7 @@ declare global {
 				name: string | null;
 				avatar_url: string | null;
 				role: 'user' | 'editor' | 'admin';
+				email?: string | null;
 			} | null;
 		}
 		// interface Error {}

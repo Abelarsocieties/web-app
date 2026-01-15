@@ -23,7 +23,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 			
 			// If profile doesn't exist yet, that's okay - it will be created on first signup
 			if (!profileError && profile) {
-				userProfile = profile;
+				userProfile = {
+					...profile,
+					email: session.user.email || null // Include email from auth
+				};
+			} else if (session.user.email) {
+				// If no profile yet, create basic user object with email
+				userProfile = {
+					id: session.user.id,
+					name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || null,
+					avatar_url: null,
+					role: 'user' as const,
+					email: session.user.email
+				};
 			}
 		} catch (error) {
 			// Silently handle profile fetch errors (table might not exist yet)
