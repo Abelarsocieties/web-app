@@ -80,8 +80,9 @@
 	</div>
 
 	<!-- Main Navigation Tabs -->
-	<div class="border-b border-gray-200 bg-white">
-		<div class="container mx-auto px-4">
+	<div class="bg-white">
+	<!-- <div class="border-b border-gray-200 bg-white"> -->
+		<div class="container mx-auto px-4" style="margin-top: 30px;justify-content: center;display: flex;">
 			<div class="flex gap-0">
 				<button
 					on:click={() => activeTab = 'live'}
@@ -121,7 +122,7 @@
 						</h2>
 						
 						<!-- Sub-tabs -->
-						<div class="flex gap-6">
+						<div class="border-b border-gray-200 flex gap-6">
 							<button
 								on:click={() => activeSubTab = 'articles'}
 								class="text-lg font-semibold transition-all duration-300 relative pb-2 {activeSubTab === 'articles' ? 'text-primary' : 'text-gray-600'}"

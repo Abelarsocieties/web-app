@@ -56,7 +56,7 @@
 		<div class="flex items-center justify-between">
 			<!-- Logo -->
 			<a href="/app/home" class="flex items-center transition-transform hover:scale-105">
-				<img src="/main-icon.png" alt="Abelar" class="h-10 transition-smooth" />
+				<img src="/logo-white.png" alt="Abelar" class="h-10 transition-smooth" />
 			</a>
 			
 			<!-- Desktop Actions -->

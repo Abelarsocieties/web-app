@@ -12,7 +12,7 @@ type EnsureDefined<T> = T extends null | undefined ? {} : T;
 type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
 export type Snapshot<T = any> = Kit.Snapshot<T>;
 type PageParentData = EnsureDefined<LayoutData>;
-type LayoutRouteId = RouteId | "/" | "/about" | "/admin" | "/admin/admins" | "/admin/dashboard" | "/admin/forgot" | "/admin/home" | "/admin/login" | "/admin/programs" | "/admin/reset" | "/admin/settings" | "/admin/submissions" | "/admin/works" | "/app/drafted" | "/app/home" | "/app/liked" | "/app/profile" | "/app/submit" | "/app/submitted" | "/auth/callback" | "/auth/forgot" | "/auth/otp" | "/auth/reset" | "/auth/sign-in" | "/auth/sign-up" | "/opportunities" | "/programs" | "/support" | "/works" | "/works/[slug]" | "/writing-guide" | null
+type LayoutRouteId = RouteId | "/" | "/about" | "/admin" | "/admin/admins" | "/admin/comments" | "/admin/dashboard" | "/admin/forgot" | "/admin/home" | "/admin/login" | "/admin/programs" | "/admin/reset" | "/admin/settings" | "/admin/submissions" | "/admin/works" | "/app/drafted" | "/app/home" | "/app/liked" | "/app/profile" | "/app/submit" | "/app/submit/success" | "/app/submitted" | "/auth/callback" | "/auth/forgot" | "/auth/otp" | "/auth/reset" | "/auth/sign-in" | "/auth/sign-up" | "/opportunities" | "/programs" | "/support" | "/works" | "/works/[slug]" | "/writing-guide" | null
 type LayoutParams = RouteParams & { slug?: string }
 type LayoutServerParentData = EnsureDefined<{}>;
 type LayoutParentData = EnsureDefined<{}>;

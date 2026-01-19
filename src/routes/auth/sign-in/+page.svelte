@@ -1,50 +1,13 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { createClient } from '$lib/supabase/client';
+	import { enhance } from '$app/forms';
+	import { page } from '$app/stores';
 
 	let email = '';
 	let password = '';
 	let rememberMe = false;
 	let loading = false;
-	let error = '';
+	let error: string = '';
 	let showSocialError = false;
-
-	async function handleSignIn() {
-		if (!email || !password) {
-			error = 'Please enter both email and password';
-			return;
-		}
-
-		loading = true;
-		error = '';
-		
-		try {
-			const supabase = createClient();
-			const { data, error: signInError } = await supabase.auth.signInWithPassword({
-				email,
-				password
-			});
-
-			if (signInError) {
-				// Provide user-friendly error messages
-				if (signInError.message.includes('Invalid login credentials')) {
-					error = 'Invalid email or password. Please try again.';
-				} else if (signInError.message.includes('Email not confirmed')) {
-					error = 'Please confirm your email before signing in. Check your inbox.';
-				} else {
-					error = signInError.message;
-				}
-				loading = false;
-			} else if (data.session) {
-				// Successfully signed in - redirect to user dashboard
-				goto('/app/home');
-			}
-		} catch (err) {
-			error = 'An unexpected error occurred. Please try again.';
-			loading = false;
-			console.error('Sign in error:', err);
-		}
-	}
 
 	async function handleGoogleSignIn() {
 		showSocialError = true;
@@ -74,10 +37,31 @@
 				</p>
 			</div>
 			
-			<form on:submit|preventDefault={handleSignIn} class="space-y-5">
-				{#if error}
+			<form method="POST" action="?/signIn" use:enhance={({ formData }) => {
+				loading = true;
+				error = '';
+				return async ({ result, update }) => {
+					loading = false;
+					if (result.type === 'failure') {
+						const data = result.data;
+						if (data && typeof data === 'object' && 'message' in data) {
+							error = String(data.message) || 'Sign in failed. Please try again.';
+						} else {
+							error = 'Sign in failed. Please try again.';
+						}
+					}
+					// If successful, the server will redirect, so we don't need to do anything here
+					await update();
+				};
+			}} class="space-y-5">
+				{#if error || $page.url.searchParams.get('error') === 'pkce_error'}
 					<div class="p-4 bg-red-50 border border-red-200 text-red-700 text-sm transition-all duration-300 rounded">
-						{error}
+						{#if $page.url.searchParams.get('error') === 'pkce_error'}
+							<p class="font-semibold mb-1">Authentication Error</p>
+							<p>There was an issue with the authentication flow. Please try signing in again. If the problem persists, try clearing your browser cookies and cache.</p>
+						{:else}
+							{error}
+						{/if}
 					</div>
 				{/if}
 				
@@ -101,6 +85,7 @@
 					<label for="email" class="block text-sm font-medium text-gray-700 mb-1.5" style="font-family: 'Space Grotesk', sans-serif;">Email</label>
 					<input
 						id="email"
+						name="email"
 						type="email"
 						bind:value={email}
 						required
@@ -113,6 +98,7 @@
 					<label for="password" class="block text-sm font-medium text-gray-700 mb-1.5" style="font-family: 'Space Grotesk', sans-serif;">Password</label>
 					<input
 						id="password"
+						name="password"
 						type="password"
 						bind:value={password}
 						required

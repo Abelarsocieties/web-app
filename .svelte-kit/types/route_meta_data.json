@@ -16,7 +16,13 @@
 		"src/routes/admin/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],
+	"/admin/comments": [
+		"src/routes/admin/comments/+page.server.ts",
+		"src/routes/admin/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
 	"/admin/dashboard": [
+		"src/routes/admin/dashboard/+page.server.ts",
 		"src/routes/admin/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],
@@ -29,6 +35,7 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/admin/login": [
+		"src/routes/admin/login/+page.server.ts",
 		"src/routes/admin/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],
@@ -77,6 +84,12 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/app/submit": [
+		"src/routes/app/submit/+page.server.ts",
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/app/submit/success": [
+		"src/routes/app/submit/success/+page.server.ts",
 		"src/routes/app/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],
@@ -96,6 +109,7 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/auth/sign-in": [
+		"src/routes/auth/sign-in/+page.server.ts",
 		"src/routes/+layout.server.ts"
 	],
 	"/auth/sign-up": [

@@ -14,27 +14,46 @@
 			const type = urlParams.get('type');
 			
 			if (code) {
-				// Exchange code for session
-				const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-				
-				if (error) {
-					console.error('Code exchange error:', error);
-					goto('/auth/sign-in?error=auth_failed');
-					return;
-				}
-				
-				if (data.session) {
-					// Successfully authenticated, clean URL and redirect
-					window.history.replaceState({}, '', window.location.pathname);
+				try {
+					// Exchange code for session
+					const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 					
-					// Redirect based on type - default to user dashboard
-					if (type === 'recovery') {
-						goto('/auth/reset');
-					} else {
-						goto('/app/home');
+					if (error) {
+						console.error('Code exchange error:', error);
+						// Clean URL even on error
+						window.history.replaceState({}, '', window.location.pathname);
+						
+						// Check if it's a PKCE error
+						if (error.message.includes('PKCE') || error.message.includes('code verifier')) {
+							// PKCE error - redirect to sign-in with helpful message
+							goto('/auth/sign-in?error=pkce_error');
+						} else {
+							goto('/auth/sign-in?error=auth_failed');
+						}
+						return;
 					}
-				} else {
-					goto('/auth/sign-in');
+					
+					if (data.session) {
+						// Wait a moment for cookies to be set
+						await new Promise(resolve => setTimeout(resolve, 100));
+						
+						// Successfully authenticated, clean URL and redirect
+						window.history.replaceState({}, '', window.location.pathname);
+						
+						// Redirect based on type - default to user dashboard
+						if (type === 'recovery') {
+							window.location.href = '/auth/reset';
+						} else {
+							window.location.href = '/app/home';
+						}
+					} else {
+						window.history.replaceState({}, '', window.location.pathname);
+						goto('/auth/sign-in');
+					}
+				} catch (err) {
+					console.error('Unexpected error during code exchange:', err);
+					window.history.replaceState({}, '', window.location.pathname);
+					goto('/auth/sign-in?error=auth_failed');
 				}
 			} else {
 				// No code, check for existing session

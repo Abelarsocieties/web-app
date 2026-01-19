@@ -16,24 +16,37 @@
 			if (code) {
 				// Exchange code for session
 				const supabase = createClient();
-				const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-				
-				if (error) {
-					console.error('Code exchange error:', error);
-					// Remove code from URL even on error
-					window.history.replaceState({}, '', window.location.pathname);
-				} else 				if (data.session) {
-					// Successfully authenticated, clean URL and redirect
-					window.history.replaceState({}, '', window.location.pathname);
+				try {
+					const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 					
-					// Redirect based on type or default to user dashboard
-					if (type === 'recovery') {
-						goto('/auth/reset');
+					if (error) {
+						console.error('Code exchange error:', error);
+						// Remove code from URL even on error
+						window.history.replaceState({}, '', window.location.pathname);
+						
+						// If PKCE error, redirect to sign-in
+						if (error.message.includes('PKCE') || error.message.includes('code verifier')) {
+							goto('/auth/sign-in?error=pkce_error');
+						}
+					} else if (data.session) {
+						// Wait for cookies to be set
+						await new Promise(resolve => setTimeout(resolve, 100));
+						
+						// Successfully authenticated, clean URL and redirect
+						window.history.replaceState({}, '', window.location.pathname);
+						
+						// Redirect based on type or default to user dashboard
+						if (type === 'recovery') {
+							window.location.href = '/auth/reset';
+						} else {
+							window.location.href = '/app/home';
+						}
 					} else {
-						goto('/app/home');
+						// No session but no error - just clean URL
+						window.history.replaceState({}, '', window.location.pathname);
 					}
-				} else {
-					// No session but no error - just clean URL
+				} catch (err) {
+					console.error('Unexpected error:', err);
 					window.history.replaceState({}, '', window.location.pathname);
 				}
 			}

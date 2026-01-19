@@ -1,66 +1,40 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { createClient } from '$lib/supabase/client';
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
+	import { enhance } from '$app/forms';
+	import { page } from '$app/stores';
+
+	export let form; // Data from server action
 
 	let email = '';
 	let password = '';
 	let loading = false;
-	let error = '';
+	let error = form?.message || '';
 
-	onMount(async () => {
-		if (browser) {
-			// Check if already signed in as admin
-			const supabase = createClient();
-			const { data: { session } } = await supabase.auth.getSession();
-			
-			if (session) {
-				// Check if user is admin (you would check against your profiles table)
-				const { data: profile } = await supabase
-					.from('profiles')
-					.select('role')
-					.eq('id', session.user.id)
-					.single();
-				
-				if (profile?.role === 'admin') {
-					goto('/admin/dashboard');
-				}
-			}
-		}
-	});
-
-	async function handleSignIn() {
+	function handleSignInSubmit() {
 		loading = true;
 		error = '';
-		
-		const supabase = createClient();
-		const { data, error: signInError } = await supabase.auth.signInWithPassword({
-			email,
-			password
-		});
+	}
 
-		if (signInError) {
-			error = signInError.message;
+	function handleEnhance({ formData }: any) {
+		loading = true;
+		error = '';
+		return async ({ result, update }: any) => {
 			loading = false;
-			return;
-		}
+			// If redirect happened (success), don't update - let SvelteKit handle the redirect
+			if (result.type === 'redirect') {
+				return;
+			}
+			if (result.type === 'failure' && result.data) {
+				const data = result.data as { message?: string };
+				error = data?.message || 'Sign in failed. Please try again.';
+			}
+			await update();
+		};
+	}
 
-		// Check if user is admin
-		const { data: profile, error: profileError } = await supabase
-			.from('profiles')
-			.select('role')
-			.eq('id', data.user.id)
-			.single();
-
-		if (profileError || profile?.role !== 'admin') {
-			error = 'You do not have admin access';
-			await supabase.auth.signOut();
-			loading = false;
-			return;
-		}
-
-		goto('/admin/dashboard');
+	// Update error message if form data changes
+	$: if (form?.message) {
+		error = form.message;
+		loading = false;
 	}
 </script>
 
@@ -81,7 +55,7 @@
 				</p>
 			</div>
 			
-			<form on:submit|preventDefault={handleSignIn} class="space-y-5">
+			<form method="POST" action="?/signIn" use:enhance={handleEnhance} class="space-y-5">
 				{#if error}
 					<div class="p-4 bg-red-50 border border-red-200 text-red-700 text-sm transition-all duration-300">
 						{error}
@@ -93,6 +67,7 @@
 					<input
 						id="email"
 						type="email"
+						name="email"
 						bind:value={email}
 						required
 						class="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
@@ -105,6 +80,7 @@
 					<input
 						id="password"
 						type="password"
+						name="password"
 						bind:value={password}
 						required
 						class="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
