@@ -2,7 +2,7 @@
 // Use this to call Supabase Edge Functions securely
 // All writes should go through Edge Functions, not direct client calls
 
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 import { createClient } from './client';
 
 /**
@@ -16,19 +16,25 @@ export async function callEdgeFunction<T = any>(
 		method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
 		body?: any;
 		requireAuth?: boolean;
+		accessToken?: string; // Optional: pass token directly (for server-side usage)
 	}
 ): Promise<{ data?: T; error?: string }> {
 	try {
-		const supabase = createClient();
 		let token = PUBLIC_SUPABASE_ANON_KEY;
 
 		// If auth is required, get user token
 		if (options.requireAuth) {
-			const { data: { session } } = await supabase.auth.getSession();
-			if (!session) {
-				return { error: 'Authentication required' };
+			// Use provided token if available (server-side), otherwise get from client
+			if (options.accessToken) {
+				token = options.accessToken;
+			} else {
+				const supabase = createClient();
+				const { data: { session } } = await supabase.auth.getSession();
+				if (!session) {
+					return { error: 'Authentication required' };
+				}
+				token = session.access_token;
 			}
-			token = session.access_token;
 		}
 
 		const response = await fetch(
@@ -46,13 +52,19 @@ export async function callEdgeFunction<T = any>(
 		const result = await response.json();
 
 		if (!response.ok) {
-			return { error: result.error || 'Request failed' };
+			const errorMessage = result.error || result.message || `Request failed with status ${response.status}`;
+			console.error(`Edge function ${functionName} error:`, {
+				status: response.status,
+				error: errorMessage,
+				response: result
+			});
+			return { error: errorMessage };
 		}
 
 		return { data: result };
 	} catch (error) {
 		console.error('Edge function error:', error);
-		return { error: 'Network error' };
+		return { error: error instanceof Error ? error.message : 'Network error' };
 	}
 }
 
@@ -82,10 +94,11 @@ export async function createWork(data: {
 	category?: string;
 	tags?: string[];
 	status?: 'draft' | 'submitted' | 'published' | 'rejected';
-}) {
+}, accessToken?: string) {
 	return callEdgeFunction<{ work: any }>('create-work', {
 		method: 'POST',
 		body: data,
 		requireAuth: true, // Requires authenticated user
+		accessToken, // Pass token for server-side usage
 	});
 }

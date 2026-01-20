@@ -29,7 +29,7 @@
 	let alignment: 'left' | 'center' | 'right' | 'justify' = 'left';
 	let headingLevel: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | null = null;
 	let listType: 'bullet' | 'number' | null = null;
-	let isFullscreen = false;
+	let imageUploadInput: HTMLInputElement;
 
 	const supabase = createClient();
 
@@ -121,20 +121,38 @@
 	}
 
 	function insertImage() {
-		const url = prompt('Enter image URL:');
-		if (url) {
-			document.execCommand('insertImage', false, url);
-		}
-		editorRef?.focus();
+		// Trigger file input for image upload
+		imageUploadInput?.click();
 	}
 
-	function toggleFullscreen() {
-		isFullscreen = !isFullscreen;
-		if (isFullscreen) {
-			editorRef?.requestFullscreen();
-		} else {
-			document.exitFullscreen();
+	async function handleImageUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (file && file.type.startsWith('image/')) {
+			// Upload image to Supabase storage first
+			try {
+				const fileExt = file.name.split('.').pop();
+				const fileName = `${data.user?.id}-${Date.now()}.${fileExt}`;
+				const { data: uploadData, error: uploadError } = await supabase.storage
+					.from('work-images')
+					.upload(fileName, file);
+
+				if (uploadError) throw uploadError;
+
+				const { data: { publicUrl } } = supabase.storage
+					.from('work-images')
+					.getPublicUrl(fileName);
+
+				// Insert image into editor
+				document.execCommand('insertImage', false, publicUrl);
+				editorRef?.focus();
+			} catch (error: any) {
+				console.error('Error uploading image:', error);
+				alert('Error uploading image: ' + error.message);
+			}
 		}
+		// Reset input
+		if (target) target.value = '';
 	}
 
 	function handleCoverImageUpload(event: Event) {
@@ -220,86 +238,57 @@
 		}
 	}
 
-	async function submitWork() {
-		loading = true;
-		try {
-			const content = editorRef?.innerHTML || '';
-			const contentJson = {
-				html: content,
-				text: editorRef?.innerText || ''
-			};
-
-			const { data: work, error } = await supabase
-				.from('works')
-				.insert({
-					title: documentTitle,
-					slug: documentTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-					excerpt: summary,
-					category: workType,
-					tags: topic ? [topic] : [],
-					status: 'submitted',
-					content_json: contentJson,
-					author_id: data.user?.id
-				})
-				.select()
-				.single();
-
-			if (error) throw error;
-
-			// Upload cover image if present
-			if (coverImage && work) {
-				const fileExt = coverImage.name.split('.').pop();
-				const fileName = `${work.id}-cover.${fileExt}`;
-				const { error: uploadError } = await supabase.storage
-					.from('work-images')
-					.upload(fileName, coverImage);
-
-				if (!uploadError) {
-					const { data: { publicUrl } } = supabase.storage
-						.from('work-images')
-						.getPublicUrl(fileName);
-
-					await supabase
-						.from('works')
-						.update({ cover_image_url: publicUrl })
-						.eq('id', work.id);
-				}
-			}
-
-			// Upload document file if present
-			if (uploadedFile && work) {
-				const fileExt = uploadedFile.name.split('.').pop();
-				const fileName = `${work.id}-document.${fileExt}`;
-				const { error: uploadError } = await supabase.storage
-					.from('work-images')
-					.upload(fileName, uploadedFile);
-
-				if (!uploadError) {
-					// Store file reference in content_json
-					const { data: { publicUrl } } = supabase.storage
-						.from('work-images')
-						.getPublicUrl(fileName);
-
-					await supabase
-						.from('works')
-						.update({
-							content_json: {
-								...contentJson,
-								file_url: publicUrl,
-								file_name: uploadedFile.name
-							}
-						})
-						.eq('id', work.id);
-				}
-			}
-
-			goto('/app/submit/success?type=' + (activeTab === 'upload' ? 'upload' : 'text'));
-		} catch (error: any) {
-			console.error('Error submitting work:', error);
-			alert('Error submitting work: ' + error.message);
-		} finally {
-			loading = false;
+	function submitWork() {
+		if (!documentTitle.trim()) {
+			alert('Please enter a document title');
+			return;
 		}
+
+		loading = true;
+
+		// Prepare content
+		const content = editorRef?.innerHTML || '';
+		
+		// Create FormData to send files to server
+		const formData = new FormData();
+		formData.append('title', documentTitle);
+		formData.append('content', content);
+		formData.append('summary', summary);
+		formData.append('workType', workType);
+		formData.append('topic', topic);
+		formData.append('activeTab', activeTab);
+		
+		if (coverImage) {
+			formData.append('coverImage', coverImage);
+		}
+		
+		if (uploadedFile) {
+			formData.append('uploadedFile', uploadedFile);
+		}
+
+		// Submit via form action
+		return fetch('?/submitWork', {
+			method: 'POST',
+			body: formData
+		}).then(async (response) => {
+			const result = await response.json();
+			
+			if (!response.ok || result.type === 'failure') {
+				throw new Error(result.data?.error || 'Failed to submit work');
+			}
+
+			// Redirect to success page
+			if (result.data?.redirect) {
+				goto(result.data.redirect);
+			} else {
+				goto('/app/submit/success?type=' + (activeTab === 'upload' ? 'upload' : 'text'));
+			}
+		}).catch((error: any) => {
+			console.error('Error submitting work:', error);
+			alert('Error submitting work: ' + (error.message || error));
+		}).finally(() => {
+			loading = false;
+		});
 	}
 
 	function startTitleEdit() {
@@ -387,30 +376,25 @@
 							</button>
 							<button
 								on:click={() => toggleFormat('italic')}
-								class="p-2 hover:bg-gray-200 rounded transition-colors"
+								class="p-2 hover:bg-gray-200 rounded transition-colors font-italic"
 								title="Italic"
+								style="font-style: italic;"
 							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-								</svg>
+								<span class="text-lg font-bold">I</span>
 							</button>
 							<button
 								on:click={() => toggleFormat('underline')}
 								class="p-2 hover:bg-gray-200 rounded transition-colors"
 								title="Underline"
 							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19h14M5 7h14M5 13h14" />
-								</svg>
+								<span class="text-lg font-bold underline">U</span>
 							</button>
 							<button
 								on:click={() => toggleFormat('strikethrough')}
 								class="p-2 hover:bg-gray-200 rounded transition-colors"
 								title="Strikethrough"
 							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
-								</svg>
+								<span class="text-lg font-bold line-through">S</span>
 							</button>
 
 							<div class="w-px h-6 bg-gray-300"></div>
@@ -447,7 +431,7 @@
 								title="Align Center"
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
 								</svg>
 							</button>
 							<button
@@ -456,7 +440,7 @@
 								title="Align Right"
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-6 6h6" />
 								</svg>
 							</button>
 							<button
@@ -527,12 +511,15 @@
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+									<text x="2" y="9" font-size="7" font-weight="bold" fill="currentColor">1.</text>
+									<text x="2" y="15" font-size="7" font-weight="bold" fill="currentColor">2.</text>
+									<text x="2" y="21" font-size="7" font-weight="bold" fill="currentColor">3.</text>
 								</svg>
 							</button>
 
 							<div class="w-px h-6 bg-gray-300"></div>
 
-							<!-- Link, Code, Image, Fullscreen -->
+							<!-- Link, Code, Image -->
 							<button
 								on:click={insertLink}
 								class="p-2 hover:bg-gray-200 rounded transition-colors"
@@ -560,15 +547,14 @@
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
 								</svg>
 							</button>
-							<button
-								on:click={toggleFullscreen}
-								class="p-2 hover:bg-gray-200 rounded transition-colors"
-								title="Fullscreen"
-							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-								</svg>
-							</button>
+							<!-- Hidden file input for image upload -->
+							<input
+								type="file"
+								bind:this={imageUploadInput}
+								accept="image/*"
+								on:change={handleImageUpload}
+								class="hidden"
+							/>
 						</div>
 
 						<!-- Editor Content Area -->
@@ -666,10 +652,18 @@
 						class="w-full px-6 py-3 bg-gray-900 text-white hover:bg-gray-800 transition-all duration-300 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
 						style="font-family: 'Space Grotesk', sans-serif;"
 					>
-						<span>Submit Work</span>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-						</svg>
+						{#if loading}
+							<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							<span>Submitting...</span>
+						{:else}
+							<span>Submit Work</span>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+							</svg>
+						{/if}
 					</button>
 				</div>
 
