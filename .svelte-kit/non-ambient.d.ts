@@ -27,7 +27,7 @@ export {};
 
 declare module "$app/types" {
 	export interface AppTypes {
-		RouteId(): "/" | "/about" | "/admin" | "/admin/admins" | "/admin/comments" | "/admin/dashboard" | "/admin/forgot" | "/admin/home" | "/admin/login" | "/admin/programs" | "/admin/reset" | "/admin/settings" | "/admin/submissions" | "/admin/works" | "/app" | "/app/drafted" | "/app/home" | "/app/liked" | "/app/profile" | "/app/submitted" | "/app/submit" | "/app/submit/success" | "/auth" | "/auth/callback" | "/auth/forgot" | "/auth/otp" | "/auth/reset" | "/auth/sign-in" | "/auth/sign-up" | "/opportunities" | "/programs" | "/support" | "/works" | "/works/[slug]" | "/writing-guide";
+		RouteId(): "/" | "/about" | "/admin" | "/admin/admins" | "/admin/comments" | "/admin/dashboard" | "/admin/forgot" | "/admin/home" | "/admin/login" | "/admin/programs" | "/admin/reset" | "/admin/settings" | "/admin/submissions" | "/admin/works" | "/app" | "/app/drafted" | "/app/home" | "/app/liked" | "/app/profile" | "/app/settings" | "/app/submitted" | "/app/submit" | "/app/submit/success" | "/auth" | "/auth/callback" | "/auth/forgot" | "/auth/otp" | "/auth/reset" | "/auth/sign-in" | "/auth/sign-up" | "/opportunities" | "/programs" | "/support" | "/works" | "/works/[slug]" | "/writing-guide";
 		RouteParams(): {
 			"/works/[slug]": { slug: string }
 		};
@@ -51,6 +51,7 @@ declare module "$app/types" {
 			"/app/home": Record<string, never>;
 			"/app/liked": Record<string, never>;
 			"/app/profile": Record<string, never>;
+			"/app/settings": Record<string, never>;
 			"/app/submitted": Record<string, never>;
 			"/app/submit": Record<string, never>;
 			"/app/submit/success": Record<string, never>;
@@ -68,7 +69,7 @@ declare module "$app/types" {
 			"/works/[slug]": { slug: string };
 			"/writing-guide": Record<string, never>
 		};
-		Pathname(): "/" | "/about" | "/about/" | "/admin" | "/admin/" | "/admin/admins" | "/admin/admins/" | "/admin/comments" | "/admin/comments/" | "/admin/dashboard" | "/admin/dashboard/" | "/admin/forgot" | "/admin/forgot/" | "/admin/home" | "/admin/home/" | "/admin/login" | "/admin/login/" | "/admin/programs" | "/admin/programs/" | "/admin/reset" | "/admin/reset/" | "/admin/settings" | "/admin/settings/" | "/admin/submissions" | "/admin/submissions/" | "/admin/works" | "/admin/works/" | "/app" | "/app/" | "/app/drafted" | "/app/drafted/" | "/app/home" | "/app/home/" | "/app/liked" | "/app/liked/" | "/app/profile" | "/app/profile/" | "/app/submitted" | "/app/submitted/" | "/app/submit" | "/app/submit/" | "/app/submit/success" | "/app/submit/success/" | "/auth" | "/auth/" | "/auth/callback" | "/auth/callback/" | "/auth/forgot" | "/auth/forgot/" | "/auth/otp" | "/auth/otp/" | "/auth/reset" | "/auth/reset/" | "/auth/sign-in" | "/auth/sign-in/" | "/auth/sign-up" | "/auth/sign-up/" | "/opportunities" | "/opportunities/" | "/programs" | "/programs/" | "/support" | "/support/" | "/works" | "/works/" | `/works/${string}` & {} | `/works/${string}/` & {} | "/writing-guide" | "/writing-guide/";
+		Pathname(): "/" | "/about" | "/about/" | "/admin" | "/admin/" | "/admin/admins" | "/admin/admins/" | "/admin/comments" | "/admin/comments/" | "/admin/dashboard" | "/admin/dashboard/" | "/admin/forgot" | "/admin/forgot/" | "/admin/home" | "/admin/home/" | "/admin/login" | "/admin/login/" | "/admin/programs" | "/admin/programs/" | "/admin/reset" | "/admin/reset/" | "/admin/settings" | "/admin/settings/" | "/admin/submissions" | "/admin/submissions/" | "/admin/works" | "/admin/works/" | "/app" | "/app/" | "/app/drafted" | "/app/drafted/" | "/app/home" | "/app/home/" | "/app/liked" | "/app/liked/" | "/app/profile" | "/app/profile/" | "/app/settings" | "/app/settings/" | "/app/submitted" | "/app/submitted/" | "/app/submit" | "/app/submit/" | "/app/submit/success" | "/app/submit/success/" | "/auth" | "/auth/" | "/auth/callback" | "/auth/callback/" | "/auth/forgot" | "/auth/forgot/" | "/auth/otp" | "/auth/otp/" | "/auth/reset" | "/auth/reset/" | "/auth/sign-in" | "/auth/sign-in/" | "/auth/sign-up" | "/auth/sign-up/" | "/opportunities" | "/opportunities/" | "/programs" | "/programs/" | "/support" | "/support/" | "/works" | "/works/" | `/works/${string}` & {} | `/works/${string}/` & {} | "/writing-guide" | "/writing-guide/";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): "/.DS_Store" | "/auth-bg.png" | "/footer-icon.png" | "/hero-bg.jpg" | "/icon-background.png" | "/left-vector.png" | "/logo-white.png" | "/main-icon.png" | "/right-vector.png" | "/upload.png" | "/user-icon.png" | "/vector-5.png" | "/vector-6.png" | string & {};
 	}

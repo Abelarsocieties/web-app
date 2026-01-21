@@ -38,7 +38,8 @@ export const nodes = [
 	() => import('./nodes/34'),
 	() => import('./nodes/35'),
 	() => import('./nodes/36'),
-	() => import('./nodes/37')
+	() => import('./nodes/37'),
+	() => import('./nodes/38')
 ];
 
 export const server_loads = [0,2,3];
@@ -55,28 +56,29 @@ export const dictionary = {
 		"/admin/login": [~13,[2]],
 		"/admin/programs": [14,[2]],
 		"/admin/reset": [15,[2]],
-		"/admin/settings": [16,[2]],
+		"/admin/settings": [~16,[2]],
 		"/admin/submissions": [17,[2]],
 		"/admin/works": [18,[2]],
 		"/app/drafted": [19,[3]],
 		"/app/home": [20,[3]],
 		"/app/liked": [21,[3]],
 		"/app/profile": [22,[3]],
-		"/app/submitted": [25,[3]],
-		"/app/submit": [~23,[3]],
-		"/app/submit/success": [~24,[3]],
-		"/auth/callback": [26,[4]],
-		"/auth/forgot": [27,[4]],
-		"/auth/otp": [28,[4]],
-		"/auth/reset": [29,[4]],
-		"/auth/sign-in": [~30,[4]],
-		"/auth/sign-up": [31,[4]],
-		"/opportunities": [32],
-		"/programs": [33],
-		"/support": [34],
-		"/works": [35],
-		"/works/[slug]": [36],
-		"/writing-guide": [37]
+		"/app/settings": [~23,[3]],
+		"/app/submitted": [26,[3]],
+		"/app/submit": [~24,[3]],
+		"/app/submit/success": [~25,[3]],
+		"/auth/callback": [27,[4]],
+		"/auth/forgot": [28,[4]],
+		"/auth/otp": [29,[4]],
+		"/auth/reset": [30,[4]],
+		"/auth/sign-in": [~31,[4]],
+		"/auth/sign-up": [32,[4]],
+		"/opportunities": [33],
+		"/programs": [34],
+		"/support": [35],
+		"/works": [36],
+		"/works/[slug]": [37],
+		"/writing-guide": [38]
 	};
 
 export const hooks = {

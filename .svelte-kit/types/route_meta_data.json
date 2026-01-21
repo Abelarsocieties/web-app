@@ -48,6 +48,7 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/admin/settings": [
+		"src/routes/admin/settings/+page.server.ts",
 		"src/routes/admin/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],
@@ -76,6 +77,11 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/app/profile": [
+		"src/routes/app/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/app/settings": [
+		"src/routes/app/settings/+page.server.ts",
 		"src/routes/app/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],

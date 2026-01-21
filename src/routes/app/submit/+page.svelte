@@ -3,11 +3,12 @@
 	import { createClient } from '$lib/supabase/client';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
 
 	export let data: PageData;
 
 	let activeTab: 'text' | 'upload' = 'text';
-	let documentTitle = 'Legend Of X, Part 2';
+	let documentTitle = '';
 	let isTitleEditing = false;
 	let titleInputRef: HTMLInputElement;
 	let editorRef: HTMLDivElement;
@@ -21,6 +22,7 @@
 	let uploadedFileName = '';
 	let authors: Array<{ id: string; name: string; email: string }> = [];
 	let selectedAuthorId = '';
+	let availableAuthors: Array<{ id: string; name: string; email: string }> = [];
 	let loading = false;
 
 	// Formatting toolbar state
@@ -30,6 +32,7 @@
 	let headingLevel: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | null = null;
 	let listType: 'bullet' | 'number' | null = null;
 	let imageUploadInput: HTMLInputElement;
+	let submitForm: HTMLFormElement;
 
 	const supabase = createClient();
 
@@ -43,22 +46,31 @@
 			}];
 		}
 
-		// Initialize editor content
+		// Fetch available authors (other users)
+		try {
+			const { data: profiles, error } = await supabase
+				.from('profiles')
+				.select('id, name, email')
+				.neq('id', data.user?.id || '')
+				.order('name', { ascending: true });
+
+			if (!error && profiles) {
+				availableAuthors = profiles.map(p => ({
+					id: p.id,
+					name: p.name || p.email || 'Unknown',
+					email: p.email || ''
+				}));
+			}
+		} catch (error) {
+			console.error('Error fetching authors:', error);
+		}
+
+		// Initialize editor content (blank) - placeholder will show via CSS
 		if (editorRef) {
-			editorRef.innerHTML = `
-				<h1>Heading 1</h1>
-				<h2>Heading 2</h2>
-				<h3>Heading 3</h3>
-				<h4>Heading 4</h4>
-				<h5>Heading 5</h5>
-				<h6>Heading 6</h6>
-				<p><strong>Chapter 1, The History</strong></p>
-				<p>The city, a kaleidoscope of digital billboards and holographic projections, pulsed with the rhythm of a thousand neural networks. X_AE_B-22 moved through the crowds, their synthetic eyes scanning for anomalies in the data stream. The mission was clear: find the source of the disruption that was threatening to tear apart the fabric of reality itself.</p>
-				<p>In the shadows, allies waited. Luna, a human hacker with a penchant for breaking into the most secure systems, and Kyro, an AI entity who had transcended their original programming. Together, they formed an unlikely trio, bound by a shared goal: to prevent the collapse of the digital and physical worlds.</p>
-				<p>But as they delved deeper into the mystery, they discovered that the disruption was not random. It was orchestrated, planned, and executed with precision. Someone—or something—was pulling the strings, and the trio found themselves caught in a web of deception that stretched across dimensions.</p>
-				<p>The question remained: who was the puppeteer, and what was their endgame? As the city around them began to fracture, X_AE_B-22 knew that time was running out. They had to act fast, or risk losing everything they held dear.</p>
-				<p><em>To Be Continued.</em></p>
-			`;
+			editorRef.innerHTML = '';
+			// Ensure placeholder shows when empty
+			editorRef.setAttribute('data-placeholder', 'Enter your article here...');
+			editorRef.classList.add('empty');
 		}
 	});
 
@@ -244,51 +256,51 @@
 			return;
 		}
 
-		loading = true;
+		// Trigger form submission
+		if (submitForm) {
+			submitForm.requestSubmit();
+		}
+	}
 
-		// Prepare content
-		const content = editorRef?.innerHTML || '';
+	function handleSubmitEnhance({ formData }: any) {
+		loading = true;
 		
-		// Create FormData to send files to server
-		const formData = new FormData();
-		formData.append('title', documentTitle);
-		formData.append('content', content);
-		formData.append('summary', summary);
-		formData.append('workType', workType);
-		formData.append('topic', topic);
-		formData.append('activeTab', activeTab);
+		// Update form data with current values (including files)
+		formData.set('title', documentTitle);
+		formData.set('content', editorRef?.innerHTML || '');
+		formData.set('summary', summary);
+		formData.set('workType', workType);
+		formData.set('topic', topic);
+		formData.set('activeTab', activeTab);
 		
+		// Handle file uploads
 		if (coverImage) {
-			formData.append('coverImage', coverImage);
+			formData.set('coverImage', coverImage);
+		} else {
+			formData.delete('coverImage');
 		}
 		
 		if (uploadedFile) {
-			formData.append('uploadedFile', uploadedFile);
+			formData.set('uploadedFile', uploadedFile);
+		} else {
+			formData.delete('uploadedFile');
 		}
-
-		// Submit via form action
-		return fetch('?/submitWork', {
-			method: 'POST',
-			body: formData
-		}).then(async (response) => {
-			const result = await response.json();
-			
-			if (!response.ok || result.type === 'failure') {
-				throw new Error(result.data?.error || 'Failed to submit work');
-			}
-
-			// Redirect to success page
-			if (result.data?.redirect) {
-				goto(result.data.redirect);
-			} else {
-				goto('/app/submit/success?type=' + (activeTab === 'upload' ? 'upload' : 'text'));
-			}
-		}).catch((error: any) => {
-			console.error('Error submitting work:', error);
-			alert('Error submitting work: ' + (error.message || error));
-		}).finally(() => {
+		
+		return async ({ result, update }: any) => {
 			loading = false;
-		});
+			
+			// If redirect happened (success), don't update - let SvelteKit handle the redirect
+			if (result.type === 'redirect') {
+				return;
+			}
+			
+			if (result.type === 'failure') {
+				const errorMessage = result.data?.error || 'Failed to submit work';
+				alert('Error submitting work: ' + errorMessage);
+			}
+			
+			await update();
+		};
 	}
 
 	function startTitleEdit() {
@@ -345,11 +357,12 @@
 									bind:value={documentTitle}
 									on:blur={saveTitle}
 									on:keydown={(e) => e.key === 'Enter' && saveTitle()}
-									class="flex-1 text-xl font-bold focus:outline-none"
+									placeholder="Enter a title"
+									class="flex-1 text-xl font-bold focus:outline-none placeholder:text-gray-400"
 									style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;"
 								/>
 							{:else}
-								<h2 class="flex-1 text-xl font-bold" style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;">{documentTitle}</h2>
+								<h2 class="flex-1 text-xl font-bold {!documentTitle ? 'text-gray-400' : ''}" style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;">{documentTitle || 'Enter a title'}</h2>
 								<button
 									on:click={startTitleEdit}
 									class="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -511,9 +524,6 @@
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-									<text x="2" y="9" font-size="7" font-weight="bold" fill="currentColor">1.</text>
-									<text x="2" y="15" font-size="7" font-weight="bold" fill="currentColor">2.</text>
-									<text x="2" y="21" font-size="7" font-weight="bold" fill="currentColor">3.</text>
 								</svg>
 							</button>
 
@@ -561,8 +571,29 @@
 						<div
 							bind:this={editorRef}
 							contenteditable="true"
-							class="px-6 py-8 min-h-[600px] focus:outline-none prose prose-lg max-w-none text-gray-900"
+							data-placeholder="Enter your article here..."
+							class="px-6 py-8 min-h-[600px] focus:outline-none prose prose-lg max-w-none text-gray-900 editor-placeholder"
 							style="font-family: 'Space Grotesk', sans-serif;"
+							on:input={(e) => {
+								// Update placeholder visibility based on content
+								if (editorRef) {
+									if (editorRef.innerText.trim()) {
+										editorRef.classList.remove('empty');
+									} else {
+										editorRef.classList.add('empty');
+									}
+								}
+							}}
+							on:focus={(e) => {
+								if (editorRef && !editorRef.innerText.trim()) {
+									editorRef.classList.add('empty');
+								}
+							}}
+							on:blur={(e) => {
+								if (editorRef && !editorRef.innerText.trim()) {
+									editorRef.classList.add('empty');
+								}
+							}}
 						>
 							<!-- Content will be inserted here -->
 						</div>
@@ -583,11 +614,12 @@
 									bind:value={documentTitle}
 									on:blur={saveTitle}
 									on:keydown={(e) => e.key === 'Enter' && saveTitle()}
-									class="flex-1 text-xl font-bold focus:outline-none"
+									placeholder="Enter a title"
+									class="flex-1 text-xl font-bold focus:outline-none placeholder:text-gray-400"
 									style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;"
 								/>
 							{:else}
-								<h2 class="flex-1 text-xl font-bold" style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;">{documentTitle}</h2>
+								<h2 class="flex-1 text-xl font-bold {!documentTitle ? 'text-gray-400' : ''}" style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;">{documentTitle || 'Enter a title'}</h2>
 								<button
 									on:click={startTitleEdit}
 									class="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -636,6 +668,10 @@
 
 			<!-- Sidebar -->
 			<div class="w-full lg:w-80 space-y-6">
+				<!-- Hidden form for submission -->
+				<form bind:this={submitForm} method="POST" action="?/submitWork" use:enhance={handleSubmitEnhance} class="hidden" enctype="multipart/form-data">
+				</form>
+				
 				<!-- Action Buttons -->
 				<div class="flex flex-col gap-3">
 					<button
@@ -674,7 +710,7 @@
 					<div class="space-y-4">
 						<!-- Work Type -->
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Work Type</label>
+							<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Work Type <span class="text-orange-500">*</span></label>
 							<select
 								bind:value={workType}
 								class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
@@ -688,7 +724,7 @@
 
 						<!-- Topic -->
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Topic</label>
+							<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Topic <span class="text-orange-500">*</span></label>
 							<select
 								bind:value={topic}
 								class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
@@ -706,7 +742,7 @@
 
 						<!-- Summary -->
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Summary</label>
+							<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Summary <span class="text-orange-500">*</span></label>
 							<textarea
 								bind:value={summary}
 								placeholder="Enter a short summary (10 words)"
@@ -745,16 +781,23 @@
 							style="font-family: 'Space Grotesk', sans-serif;"
 						>
 							<option value="">Select Author</option>
-							<!-- TODO: Fetch other users from database -->
+							{#each availableAuthors as author}
+								<option value={author.id}>{author.name} {author.email ? `(${author.email})` : ''}</option>
+							{/each}
 						</select>
 
 						<button
 							on:click={() => {
 								if (selectedAuthorId && !authors.find(a => a.id === selectedAuthorId)) {
-									// TODO: Add selected author
+									const authorToAdd = availableAuthors.find(a => a.id === selectedAuthorId);
+									if (authorToAdd) {
+										authors = [...authors, authorToAdd];
+										selectedAuthorId = '';
+									}
 								}
 							}}
-							class="w-full text-primary hover:text-primary-dark text-sm font-medium flex items-center gap-1"
+							disabled={!selectedAuthorId || authors.find(a => a.id === selectedAuthorId) !== undefined}
+							class="w-full text-primary hover:text-primary-dark text-sm font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
 							style="font-family: 'Space Grotesk', sans-serif;"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -767,7 +810,7 @@
 
 				<!-- Cover Image -->
 				<div class="bg-white border-2 border-black rounded-lg p-6">
-					<h3 class="text-lg font-bold mb-4" style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;">Cover Image</h3>
+					<h3 class="text-lg font-bold mb-4" style="font-weight: 900; font-family: 'Space Grotesk', sans-serif;">Cover Image <span class="text-orange-500">*</span></h3>
 					
 					{#if coverImagePreview}
 						<div class="mb-4">
@@ -820,6 +863,18 @@
 
 	:global([contenteditable="true"]:focus) {
 		outline: none;
+	}
+
+	.editor-placeholder:empty:before,
+	.editor-placeholder.empty:before {
+		content: attr(data-placeholder);
+		color: #9ca3af;
+		pointer-events: none;
+	}
+
+	.editor-placeholder:focus:empty:before,
+	.editor-placeholder:focus.empty:before {
+		color: #d1d5db;
 	}
 
 	:global(.prose h1) {

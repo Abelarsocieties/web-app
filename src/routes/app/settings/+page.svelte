@@ -151,7 +151,7 @@
 </script>
 
 <svelte:head>
-	<title>Settings | Admin | Abelar</title>
+	<title>Settings | Abelar</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-100">

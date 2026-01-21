@@ -2,7 +2,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { redirect, fail } from '@sveltejs/kit';
 import { createClient } from '$lib/supabase/server';
 import { createAdminClient } from '$lib/supabase/admin';
-import { createWork } from '$lib/supabase/edge-functions';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.session || !locals.user) {
@@ -98,28 +97,40 @@ export const actions: Actions = {
 				contentJson.file_name = uploadedFile?.name || '';
 			}
 
-			// Create work using Edge Function
+			// Create work directly in database (server-side, using admin client bypasses RLS)
 			const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 			
-			// Get access token from session for server-side edge function call
-			const { data: { session } } = await supabase.auth.getSession();
-			if (!session) {
-				return fail(401, { error: 'Session expired. Please sign in again.' });
-			}
-			
-			const { data: result, error } = await createWork({
-				title,
-				slug,
-				content_json: contentJson,
-				cover_image_url: coverImageUrl || undefined,
-				category: workType,
-				tags: topic ? [topic] : [],
-				status: 'submitted'
-			}, session.access_token);
+			// Check if slug already exists
+			const { data: existingWork } = await adminClient
+				.from('works')
+				.select('id')
+				.eq('slug', slug)
+				.single();
 
-			if (error) {
-				console.error('Create work error:', error);
-				return fail(500, { error: error || 'Failed to submit work' });
+			if (existingWork) {
+				return fail(409, { error: 'A work with this title already exists. Please use a different title.' });
+			}
+
+			// Insert work directly using admin client
+			const { data: newWork, error: insertError } = await adminClient
+				.from('works')
+				.insert({
+					author_id: locals.user.id,
+					title,
+					slug,
+					content_json: contentJson,
+					cover_image_url: coverImageUrl || null,
+					category: workType,
+					tags: topic ? [topic] : [],
+					status: 'submitted',
+					excerpt: summary || null
+				})
+				.select()
+				.single();
+
+			if (insertError) {
+				console.error('Create work error:', insertError);
+				return fail(500, { error: insertError.message || 'Failed to submit work' });
 			}
 
 			throw redirect(303, `/app/submit/success?type=${activeTab === 'upload' ? 'upload' : 'text'}`);
