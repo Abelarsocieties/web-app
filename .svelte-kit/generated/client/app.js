@@ -57,7 +57,7 @@ export const dictionary = {
 		"/admin/programs": [14,[2]],
 		"/admin/reset": [15,[2]],
 		"/admin/settings": [~16,[2]],
-		"/admin/submissions": [17,[2]],
+		"/admin/submissions": [~17,[2]],
 		"/admin/works": [18,[2]],
 		"/app/drafted": [19,[3]],
 		"/app/home": [20,[3]],

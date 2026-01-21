@@ -53,6 +53,7 @@
 		"src/routes/+layout.server.ts"
 	],
 	"/admin/submissions": [
+		"src/routes/admin/submissions/+page.server.ts",
 		"src/routes/admin/+layout.server.ts",
 		"src/routes/+layout.server.ts"
 	],
