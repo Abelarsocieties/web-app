@@ -47,22 +47,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// 'all' shows all statuses
 
 	// Apply search filter if provided
-	// Note: Supabase doesn't support searching across relations easily, so we'll filter after fetching
-	// For now, search by title and tags
+	// Search by title and tags (author search will be done after fetching due to relation)
 	if (search) {
-		query = query.or(`title.ilike.%${search}%,tags.cs.{${search}}`);
+		query = query.or(`title.ilike.%${search}%`);
 	}
 
 	// Order by created_at descending
 	query = query.order('created_at', { ascending: false });
 
-	// Apply pagination
-	query = query.range(offset, offset + pageSize - 1);
+	// Fetch all matching works first (for author filtering)
+	const { data: allWorks, error: allError } = await query;
 
-	const { data: works, error, count } = await query;
-
-	if (error) {
-		console.error('Error fetching submissions:', error);
+	if (allError) {
+		console.error('Error fetching submissions:', allError);
 		return {
 			submissions: [],
 			totalCount: 0,
@@ -73,20 +70,33 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		};
 	}
 
-	// Filter by author name/email if search is provided (client-side filtering for relation fields)
-	let filteredWorks = works || [];
-	if (search && works) {
-		filteredWorks = works.filter((work: any) => {
+	// Filter by author name/email and tags if search is provided
+	let filteredWorks = allWorks || [];
+	if (search && allWorks) {
+		const searchLower = search.toLowerCase();
+		filteredWorks = allWorks.filter((work: any) => {
 			const author = work.author || {};
 			const authorName = (author.name || '').toLowerCase();
 			const authorEmail = (author.email || '').toLowerCase();
-			const searchLower = search.toLowerCase();
-			return authorName.includes(searchLower) || authorEmail.includes(searchLower);
+			const title = (work.title || '').toLowerCase();
+			const tags = (work.tags || []).join(' ').toLowerCase();
+			
+			return title.includes(searchLower) || 
+			       tags.includes(searchLower) ||
+			       authorName.includes(searchLower) || 
+			       authorEmail.includes(searchLower);
 		});
 	}
 
+	// Calculate total count after filtering
+	const totalCount = filteredWorks.length;
+	const totalPages = Math.ceil(totalCount / pageSize);
+
+	// Apply pagination to filtered results
+	const paginatedWorks = filteredWorks.slice(offset, offset + pageSize);
+
 	// Process submissions for table
-	const submissions = filteredWorks.map((work: any) => {
+	const submissions = paginatedWorks.map((work: any) => {
 		const author = work.author || {};
 		const nameParts = (author.name || author.email || 'Unknown').split(' ');
 		const initials = nameParts.length >= 2 
@@ -121,11 +131,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		};
 	});
 
-	const totalPages = Math.ceil((count || 0) / pageSize);
-
 	return {
 		submissions,
-		totalCount: count || 0,
+		totalCount,
 		currentPage: page,
 		totalPages,
 		status,
@@ -192,12 +200,37 @@ export const actions: Actions = {
 		}
 
 		try {
-			// Update work status to rejected
+			// Update work status to rejected and store rejection reason
+			const updateData: any = {
+				status: 'rejected'
+			};
+			
+			// Store rejection reason in content_json metadata if available
+			// Or create a notes field - for now we'll add it to content_json
+			if (reason) {
+				const { data: currentWork } = await adminClient
+					.from('works')
+					.select('content_json')
+					.eq('id', workId)
+					.single();
+				
+				if (currentWork?.content_json) {
+					updateData.content_json = {
+						...currentWork.content_json,
+						rejection_reason: reason,
+						rejected_at: new Date().toISOString()
+					};
+				} else {
+					updateData.content_json = {
+						rejection_reason: reason,
+						rejected_at: new Date().toISOString()
+					};
+				}
+			}
+
 			const { error } = await adminClient
 				.from('works')
-				.update({
-					status: 'rejected'
-				})
+				.update(updateData)
 				.eq('id', workId);
 
 			if (error) {

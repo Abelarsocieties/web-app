@@ -14,3 +14,16 @@ asset references/
 
 # Setup documentation (internal use only)
 SETUP_COMPLETE.md
+
+# Troubleshooting guides (for personal reference, not needed in repo)
+SUPABASE_LOGIN_FIX.md
+NEXTJS_API_AUTH_ERROR_FIX.md
+GITHUB_DESKTOP_MULTIPLE_REPOS.md
+PUSH_TO_MULTIPLE_REPOS.md
+
+# Setup guides (internal documentation)
+DASHBOARD_AND_PERMISSIONS_SETUP.md
+ADMIN_SETUP.md
+QUICK_SECURITY_GUIDE.md
+SECURITY_SETUP.md
+ENV_SETUP.md

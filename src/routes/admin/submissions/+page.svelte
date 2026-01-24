@@ -7,11 +7,18 @@
 	export let data: PageData;
 
 	let activeTab: 'all' | 'pending' | 'approved' = data.status === 'pending' ? 'pending' : data.status === 'approved' ? 'approved' : 'all';
+	
+	// Sync activeTab with URL params on load
+	$: if (data.status) {
+		activeTab = data.status === 'pending' ? 'pending' : data.status === 'approved' ? 'approved' : 'all';
+	}
 	let searchQuery = data.search || '';
 	let showModal = false;
 	let selectedSubmission: any = null;
 	let loading = false;
 	let rejectReason = '';
+	let errorMessage = '';
+	let successMessage = '';
 
 	function getFileIcon(title: string) {
 		if (title.toLowerCase().endsWith('.pdf')) {
@@ -31,8 +38,10 @@
 		if (searchQuery) {
 			params.set('search', searchQuery);
 		}
+		// Reset to page 1 when changing tabs
+		params.set('page', '1');
 		const queryString = params.toString();
-		goto(`/admin/submissions${queryString ? '?' + queryString : ''}`);
+		goto(`/admin/submissions?${queryString}`);
 	}
 
 	function handleSearch() {
@@ -40,17 +49,21 @@
 		if (activeTab !== 'all') {
 			params.set('status', activeTab);
 		}
-		if (searchQuery) {
-			params.set('search', searchQuery);
+		if (searchQuery.trim()) {
+			params.set('search', searchQuery.trim());
 		}
+		// Reset to page 1 when searching
+		params.set('page', '1');
 		const queryString = params.toString();
-		goto(`/admin/submissions${queryString ? '?' + queryString : ''}`);
+		goto(`/admin/submissions?${queryString}`);
 	}
 
 	function openModal(submission: any) {
 		selectedSubmission = submission;
 		showModal = true;
 		rejectReason = '';
+		errorMessage = '';
+		successMessage = '';
 	}
 
 	function closeModal() {
@@ -73,28 +86,44 @@
 
 	async function handleApprove({ formData }: any) {
 		loading = true;
+		errorMessage = '';
+		successMessage = '';
 		return async ({ result, update }: any) => {
 			loading = false;
 			if (result.type === 'success') {
+				successMessage = 'Work approved successfully!';
 				closeModal();
-				await update();
+				setTimeout(() => {
+					successMessage = '';
+					update();
+				}, 1000);
+			} else if (result.type === 'failure') {
+				errorMessage = result.data?.error || 'Failed to approve work';
 			}
 		};
 	}
 
 	async function handleReject({ formData }: any) {
 		loading = true;
+		errorMessage = '';
+		successMessage = '';
 		if (!rejectReason.trim()) {
-			alert('Please provide a reason for rejection');
+			errorMessage = 'Please provide a reason for rejection';
 			loading = false;
 			return;
 		}
-		formData.set('reason', rejectReason);
+		formData.set('reason', rejectReason.trim());
 		return async ({ result, update }: any) => {
 			loading = false;
 			if (result.type === 'success') {
+				successMessage = 'Work rejected successfully!';
 				closeModal();
-				await update();
+				setTimeout(() => {
+					successMessage = '';
+					update();
+				}, 1000);
+			} else if (result.type === 'failure') {
+				errorMessage = result.data?.error || 'Failed to reject work';
 			}
 		};
 	}
@@ -146,6 +175,18 @@
 				Approved
 			</button>
 		</div>
+
+		<!-- Messages -->
+		{#if successMessage}
+			<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+				{successMessage}
+			</div>
+		{/if}
+		{#if errorMessage}
+			<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+				{errorMessage}
+			</div>
+		{/if}
 
 		<!-- Search Bar -->
 		<div class="mb-6 flex items-center gap-3 justify-end">
@@ -224,40 +265,40 @@
 												</svg>
 											{/if}
 											<div>
-												<div class="text-sm font-medium text-gray-900" style="font-family: 'Space Grotesk', sans-serif;">{submission.title}</div>
-												<div class="text-xs text-gray-500">{submission.size}</div>
+												<div class="text-sm font-medium text-gray-900" style="font-family: 'Space Grotesk', sans-serif;">{submission.title || 'Untitled'}</div>
+												<div class="text-xs text-gray-500">{submission.size || 'N/A'}</div>
 											</div>
 										</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="text-sm {submission.type === 'File Upload' ? 'text-green-600' : 'text-red-400'}" style="font-family: 'Space Grotesk', sans-serif;">
-											{submission.type}
+											{submission.type || 'Unknown'}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-blue-500 text-blue-700 bg-blue-50" style="font-family: 'Space Grotesk', sans-serif;">
-											{submission.category}
+											{submission.category || 'N/A'}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-primary text-primary bg-orange-50" style="font-family: 'Space Grotesk', sans-serif;">
-											{submission.topic}
+											{submission.topic || 'N/A'}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" style="font-family: 'Space Grotesk', sans-serif;">{submission.dateSubmitted}</td>
 									<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" style="font-family: 'Space Grotesk', sans-serif;">{submission.lastUpdated}</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center gap-2">
-											{#if submission.author.avatar}
-												<img src={submission.author.avatar} alt={submission.author.name} class="w-8 h-8 rounded-full" />
+											{#if submission.author?.avatar}
+												<img src={submission.author.avatar} alt={submission.author?.name || 'Author'} class="w-8 h-8 rounded-full" />
 											{:else}
 												<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-													<span class="text-xs font-semibold text-gray-700">{submission.author.initials}</span>
+													<span class="text-xs font-semibold text-gray-700">{submission.author?.initials || 'U'}</span>
 												</div>
 											{/if}
 											<div>
-												<div class="text-sm font-medium text-gray-900" style="font-family: 'Space Grotesk', sans-serif;">{submission.author.name}</div>
-												<div class="text-xs text-gray-500">{submission.author.email}</div>
+												<div class="text-sm font-medium text-gray-900" style="font-family: 'Space Grotesk', sans-serif;">{submission.author?.name || 'Unknown'}</div>
+												<div class="text-xs text-gray-500">{submission.author?.email || ''}</div>
 											</div>
 										</div>
 									</td>
@@ -430,19 +471,19 @@
 				</div>
 
 				<!-- Content Preview -->
-				{#if selectedSubmission.content?.html}
+				{#if selectedSubmission.content?.html && selectedSubmission.content.html.trim()}
 					<div class="mb-6">
 						<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">Content Preview</label>
 						<div class="border border-gray-300 rounded p-4 max-h-64 overflow-y-auto bg-gray-50">
-							<div class="prose prose-sm max-w-none" set:html={selectedSubmission.content.html}></div>
+							<div class="prose prose-sm max-w-none">{@html selectedSubmission.content.html}</div>
 						</div>
 					</div>
 				{/if}
 
-				{#if selectedSubmission.content?.file_url}
+				{#if selectedSubmission.content?.file_url || selectedSubmission.content?.file_name}
 					<div class="mb-6">
 						<label class="block text-sm font-medium text-gray-700 mb-2" style="font-family: 'Space Grotesk', sans-serif;">File</label>
-						<a href={selectedSubmission.content.file_url} target="_blank" class="text-primary hover:text-primary-dark underline">
+						<a href={selectedSubmission.content.file_url || '#'} target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-dark underline">
 							{selectedSubmission.content.file_name || 'Download File'}
 						</a>
 					</div>
@@ -462,29 +503,36 @@
 			</div>
 
 			<!-- Modal Footer -->
-			<div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
-				<form method="POST" action="?/reject" use:enhance={handleReject}>
-					<input type="hidden" name="workId" value={selectedSubmission.id} />
-					<button
-						type="submit"
-						disabled={loading}
-						class="px-6 py-2 bg-red-600 text-white hover:bg-red-700 transition-all duration-300 rounded font-medium disabled:opacity-50"
-						style="font-family: 'Space Grotesk', sans-serif;"
-					>
-						{loading ? 'Processing...' : 'Reject'}
-					</button>
-				</form>
-				<form method="POST" action="?/approve" use:enhance={handleApprove}>
-					<input type="hidden" name="workId" value={selectedSubmission.id} />
-					<button
-						type="submit"
-						disabled={loading || selectedSubmission.status === 'published'}
-						class="px-6 py-2 bg-primary text-white hover:bg-primary-dark transition-all duration-300 rounded font-medium disabled:opacity-50"
-						style="font-family: 'Space Grotesk', sans-serif;"
-					>
-						{loading ? 'Processing...' : selectedSubmission.status === 'published' ? 'Approved' : 'Approve'}
-					</button>
-				</form>
+			<div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+				{#if errorMessage}
+					<div class="text-red-600 text-sm">{errorMessage}</div>
+				{:else}
+					<div></div>
+				{/if}
+				<div class="flex items-center gap-3">
+					<form method="POST" action="?/reject" use:enhance={handleReject}>
+						<input type="hidden" name="workId" value={selectedSubmission.id} />
+						<button
+							type="submit"
+							disabled={loading}
+							class="px-6 py-2 bg-red-600 text-white hover:bg-red-700 transition-all duration-300 rounded font-medium disabled:opacity-50"
+							style="font-family: 'Space Grotesk', sans-serif;"
+						>
+							{loading ? 'Processing...' : 'Reject'}
+						</button>
+					</form>
+					<form method="POST" action="?/approve" use:enhance={handleApprove}>
+						<input type="hidden" name="workId" value={selectedSubmission.id} />
+						<button
+							type="submit"
+							disabled={loading || selectedSubmission.status === 'published'}
+							class="px-6 py-2 bg-primary text-white hover:bg-primary-dark transition-all duration-300 rounded font-medium disabled:opacity-50"
+							style="font-family: 'Space Grotesk', sans-serif;"
+						>
+							{loading ? 'Processing...' : selectedSubmission.status === 'published' ? 'Approved' : 'Approve'}
+						</button>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>
